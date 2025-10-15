@@ -142,10 +142,10 @@ const Task = () => {
 
     return (
         <SafeAreaView className="flex-1 bg-gray-50">
-            <StatusBar barStyle="dark-content" backgroundColor="#f9fafb" />
+            {/* <StatusBar barStyle="dark-content" backgroundColor="#f9fafb" /> */}
             
             {/* Header */}
-            <View className="mx-4 mt-6 mb-4">
+            <View className="mx-4 mt-4 mb-4">
                 <View className="flex-row items-center justify-between">
                     <Text className="text-2xl font-bold text-gray-800">
                         Farm Tasks

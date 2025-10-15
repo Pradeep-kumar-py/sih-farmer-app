@@ -1,6 +1,7 @@
 import { Stack } from "expo-router";
-import "./global.css"
-import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import "./global.css";
+import "./utils/polyfills"; // Import polyfills for React Native compatibility
 
 export default function RootLayout() {
   return (

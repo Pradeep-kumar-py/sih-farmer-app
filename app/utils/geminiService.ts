@@ -8,25 +8,38 @@ export interface ChatMessage {
 }
 
 class GeminiService {
-  private ai: GoogleGenAI;
+  private ai: GoogleGenAI | null = null;
   private chat: any = null;
 
   constructor() {
-    this.ai = new GoogleGenAI({
-      apiKey: GEMINI_API_KEY
-    });
+    try {
+      if (!GEMINI_API_KEY) {
+        throw new Error("Gemini API key is required");
+      }
+      this.ai = new GoogleGenAI({
+        apiKey: GEMINI_API_KEY
+      });
+    } catch (error) {
+      console.error("Error initializing GoogleGenAI:", error);
+    }
   }
 
   async initializeChat(initialHistory: ChatMessage[] = []) {
     try {
+      if (!this.ai) {
+        throw new Error("GoogleGenAI not initialized");
+      }
+
       // Convert our message format to Gemini's expected format
-      const history = initialHistory.map(msg => ({
-        role: msg.role,
-        parts: [{ text: msg.text }]
-      }));
+      const history = initialHistory
+        .filter(msg => msg.text && msg.text.trim()) // Filter out empty messages
+        .map(msg => ({
+          role: msg.role,
+          parts: [{ text: msg.text }]
+        }));
 
       this.chat = this.ai.chats.create({
-        model: "gemini-2.5-flash",
+        model: "gemini-1.5-flash", // Use a more stable model
         history: history
       });
 
@@ -39,20 +52,43 @@ class GeminiService {
 
   async sendMessage(message: string): Promise<string> {
     try {
-      if (!this.chat) {
-        await this.initializeChat();
+      if (!message || !message.trim()) {
+        throw new Error("Message cannot be empty");
       }
 
-      const stream = await this.chat.sendMessageStream({
-        message: message
+      if (!this.chat) {
+        const initialized = await this.initializeChat();
+        if (!initialized) {
+          throw new Error("Failed to initialize chat");
+        }
+      }
+
+      // Try streaming first
+      try {
+        const stream = await this.chat.sendMessageStream({
+          message: message.trim()
+        });
+
+        let fullResponse = '';
+        for await (const chunk of stream) {
+          if (chunk && chunk.text) {
+            fullResponse += chunk.text;
+          }
+        }
+
+        if (fullResponse.trim()) {
+          return fullResponse.trim();
+        }
+      } catch (streamError) {
+        console.warn("Streaming failed, trying direct message:", streamError);
+      }
+
+      // Fallback to direct message
+      const response = await this.chat.sendMessage({
+        message: message.trim()
       });
 
-      let fullResponse = '';
-      for await (const chunk of stream) {
-        fullResponse += chunk.text;
-      }
-
-      return fullResponse;
+      return response.text || "I apologize, but I couldn't generate a response. Please try again.";
     } catch (error) {
       console.error("Error sending message:", error);
       throw new Error("Failed to send message to Gemini");
@@ -61,8 +97,16 @@ class GeminiService {
 
   async sendMessageWithHistory(message: string, chatHistory: ChatMessage[]): Promise<string> {
     try {
+      if (!message || !message.trim()) {
+        throw new Error("Message cannot be empty");
+      }
+
       // Reinitialize chat with current history
-      await this.initializeChat(chatHistory);
+      const initialized = await this.initializeChat(chatHistory);
+      if (!initialized) {
+        throw new Error("Failed to initialize chat with history");
+      }
+      
       return await this.sendMessage(message);
     } catch (error) {
       console.error("Error sending message with history:", error);
@@ -72,6 +116,11 @@ class GeminiService {
 
   resetChat() {
     this.chat = null;
+  }
+
+  // Health check method
+  isInitialized(): boolean {
+    return this.ai !== null;
   }
 }
 
