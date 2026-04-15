@@ -1,16 +1,33 @@
-import { Ionicons } from '@expo/vector-icons';
-import React, { useState } from 'react';
+import { Ionicons } from "@expo/vector-icons";
+import React, { useState } from "react";
 import {
-    Alert,
-    Modal,
-    SafeAreaView,
-    ScrollView,
-    StatusBar,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
-} from 'react-native';
+  Alert,
+  Modal,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+
+/**
+ * Community Hub Component
+ *
+ * Features:
+ * - Community feed with posts from local farmers
+ * - Create and share posts with different categories
+ * - Search and filter posts by category or content
+ * - Like, comment, and share functionality
+ * - Save posts for later reference
+ * - Trending posts section
+ * - Community groups and market prices
+ *
+ * Enhanced by: This version includes search functionality,
+ * advanced filtering, post saving, trending analysis, and
+ * improved user engagement features.
+ */
 
 interface Post {
   id: string;
@@ -22,7 +39,7 @@ interface Post {
   likes: number;
   comments: number;
   isLiked: boolean;
-  category: 'question' | 'tip' | 'market' | 'weather';
+  category: "question" | "tip" | "market" | "weather";
 }
 
 interface CommunityGroup {
@@ -34,124 +51,200 @@ interface CommunityGroup {
 }
 
 const Community = () => {
-  const [activeTab, setActiveTab] = useState<'feed' | 'groups' | 'market'>('feed');
+  const [activeTab, setActiveTab] = useState<"feed" | "groups" | "market">(
+    "feed",
+  );
   const [showCreatePost, setShowCreatePost] = useState(false);
-  const [newPostContent, setNewPostContent] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<'question' | 'tip' | 'market' | 'weather'>('question');
+  const [newPostContent, setNewPostContent] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<
+    "question" | "tip" | "market" | "weather"
+  >("question");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterCategory, setFilterCategory] = useState<
+    "all" | "question" | "tip" | "market" | "weather"
+  >("all");
+  const [savedPosts, setSavedPosts] = useState<string[]>([]);
 
   const [posts, setPosts] = useState<Post[]>([
     {
-      id: '1',
-      author: 'Ramesh Sharma',
-      authorAvatar: '👨‍🌾',
-      time: '2 hours ago',
-      content: 'My wheat crop is getting spots on the leaves. What should I do? Can anyone suggest?',
+      id: "1",
+      author: "Ramesh Sharma",
+      authorAvatar: "👨‍🌾",
+      time: "2 hours ago",
+      content:
+        "My wheat crop is getting spots on the leaves. What should I do? Can anyone suggest?",
       likes: 12,
       comments: 8,
       isLiked: false,
-      category: 'question'
+      category: "question",
     },
     {
-      id: '2',
-      author: 'Sunita Devi',
-      authorAvatar: '👩‍🌾',
-      time: '5 hours ago',
-      content: 'Use organic fertilizer for tomato farming. I got 30% more production!',
-      image: '🍅',
+      id: "2",
+      author: "Sunita Devi",
+      authorAvatar: "👩‍🌾",
+      time: "5 hours ago",
+      content:
+        "Use organic fertilizer for tomato farming. I got 30% more production!",
+      image: "🍅",
       likes: 25,
       comments: 15,
       isLiked: true,
-      category: 'tip'
+      category: "tip",
     },
     {
-      id: '3',
-      author: 'Mukesh Patel',
-      authorAvatar: '👨‍🌾',
-      time: '1 day ago',
-      content: 'Today Delhi market price for rice is ₹2,280 per quintal. Good time to sell.',
+      id: "3",
+      author: "Mukesh Patel",
+      authorAvatar: "👨‍🌾",
+      time: "1 day ago",
+      content:
+        "Today Delhi market price for rice is ₹2,280 per quintal. Good time to sell.",
       likes: 18,
       comments: 6,
       isLiked: false,
-      category: 'market'
-    }
+      category: "market",
+    },
+    {
+      id: "4",
+      author: "Priya Singh",
+      authorAvatar: "👩‍🌾",
+      time: "3 hours ago",
+      content:
+        "Best time to plant wheat is in October-November. Prepare your fields now for better yield!",
+      image: "🌾",
+      likes: 45,
+      comments: 22,
+      isLiked: false,
+      category: "tip",
+    },
+    {
+      id: "5",
+      author: "Ajay Kumar",
+      authorAvatar: "👨‍🌾",
+      time: "6 hours ago",
+      content:
+        "Rain expected in next 2 days. Avoid chemical spraying on crops.",
+      likes: 32,
+      comments: 11,
+      isLiked: false,
+      category: "weather",
+    },
   ]);
 
   const communityGroups: CommunityGroup[] = [
     {
-      id: '1',
-      name: 'Wheat Farmers Community',
+      id: "1",
+      name: "Wheat Farmers Community",
       members: 1245,
-      description: 'Share wheat farming knowledge',
-      icon: '🌾'
+      description: "Share wheat farming knowledge",
+      icon: "🌾",
     },
     {
-      id: '2',
-      name: 'Organic Farming',
+      id: "2",
+      name: "Organic Farming",
       members: 890,
-      description: 'Farmers using organic methods',
-      icon: '🌱'
+      description: "Farmers using organic methods",
+      icon: "🌱",
     },
     {
-      id: '3',
-      name: 'Market Price Updates',
+      id: "3",
+      name: "Market Price Updates",
       members: 2156,
-      description: 'Daily market prices and information',
-      icon: '📊'
+      description: "Daily market prices and information",
+      icon: "📊",
     },
     {
-      id: '4',
-      name: 'Weather Updates',
+      id: "4",
+      name: "Weather Updates",
       members: 1876,
-      description: 'Weather information for farming',
-      icon: '🌤️'
-    }
+      description: "Weather information for farming",
+      icon: "🌤️",
+    },
   ];
 
   const handleLike = (postId: string) => {
-    setPosts(posts.map(post => 
-      post.id === postId 
-        ? { ...post, isLiked: !post.isLiked, likes: post.isLiked ? post.likes - 1 : post.likes + 1 }
-        : post
-    ));
+    setPosts(
+      posts.map((post) =>
+        post.id === postId
+          ? {
+              ...post,
+              isLiked: !post.isLiked,
+              likes: post.isLiked ? post.likes - 1 : post.likes + 1,
+            }
+          : post,
+      ),
+    );
   };
+
+  const handleSavePost = (postId: string) => {
+    if (savedPosts.includes(postId)) {
+      setSavedPosts(savedPosts.filter((id) => id !== postId));
+    } else {
+      setSavedPosts([...savedPosts, postId]);
+    }
+  };
+
+  // Filter and search posts
+  const filteredPosts = posts.filter((post) => {
+    const matchesSearch =
+      post.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      post.author.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory =
+      filterCategory === "all" || post.category === filterCategory;
+    return matchesSearch && matchesCategory;
+  });
+
+  // Get trending posts (sorted by likes)
+  const trendingPosts = [...posts]
+    .sort((a, b) => b.likes - a.likes)
+    .slice(0, 3);
 
   const handleCreatePost = () => {
     if (newPostContent.trim()) {
       const newPost: Post = {
         id: Date.now().toString(),
-        author: 'You',
-        authorAvatar: '👤',
-        time: 'Just now',
+        author: "You",
+        authorAvatar: "👤",
+        time: "Just now",
         content: newPostContent,
         likes: 0,
         comments: 0,
         isLiked: false,
-        category: selectedCategory
+        category: selectedCategory,
       };
       setPosts([newPost, ...posts]);
-      setNewPostContent('');
+      setNewPostContent("");
       setShowCreatePost(false);
-      Alert.alert('Success!', 'Your post has been published.');
+      Alert.alert("Success!", "Your post has been published.");
     }
   };
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
-      case 'question': return '❓';
-      case 'tip': return '💡';
-      case 'market': return '💰';
-      case 'weather': return '🌤️';
-      default: return '📝';
+      case "question":
+        return "❓";
+      case "tip":
+        return "💡";
+      case "market":
+        return "💰";
+      case "weather":
+        return "🌤️";
+      default:
+        return "📝";
     }
   };
 
   const getCategoryColor = (category: string) => {
     switch (category) {
-      case 'question': return 'bg-blue-100 text-blue-800';
-      case 'tip': return 'bg-green-100 text-green-800';
-      case 'market': return 'bg-yellow-100 text-yellow-800';
-      case 'weather': return 'bg-purple-100 text-purple-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case "question":
+        return "bg-blue-100 text-blue-800";
+      case "tip":
+        return "bg-green-100 text-green-800";
+      case "market":
+        return "bg-yellow-100 text-yellow-800";
+      case "weather":
+        return "bg-purple-100 text-purple-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
@@ -167,11 +260,18 @@ const Community = () => {
               <Text className="text-sm text-gray-500">{post.time}</Text>
             </View>
           </View>
-          <View className={`px-2 py-1 rounded-full ${getCategoryColor(post.category)}`}>
+          <View
+            className={`px-2 py-1 rounded-full ${getCategoryColor(post.category)}`}
+          >
             <Text className="text-xs font-medium">
-              {getCategoryIcon(post.category)} {post.category === 'question' ? 'Question' : 
-                post.category === 'tip' ? 'Tip' : 
-                post.category === 'market' ? 'Market' : 'Weather'}
+              {getCategoryIcon(post.category)}{" "}
+              {post.category === "question"
+                ? "Question"
+                : post.category === "tip"
+                  ? "Tip"
+                  : post.category === "market"
+                    ? "Market"
+                    : "Weather"}
             </Text>
           </View>
         </View>
@@ -179,7 +279,9 @@ const Community = () => {
 
       {/* Post Content */}
       <View className="p-4">
-        <Text className="text-gray-800 text-base leading-6 mb-3">{post.content}</Text>
+        <Text className="text-gray-800 text-base leading-6 mb-3">
+          {post.content}
+        </Text>
         {post.image && (
           <View className="bg-gray-100 rounded-lg p-8 items-center mb-3">
             <Text className="text-6xl">{post.image}</Text>
@@ -189,16 +291,18 @@ const Community = () => {
 
       {/* Post Actions */}
       <View className="flex-row items-center justify-between px-4 py-3 border-t border-gray-100">
-        <TouchableOpacity 
+        <TouchableOpacity
           className="flex-row items-center"
           onPress={() => handleLike(post.id)}
         >
-          <Ionicons 
-            name={post.isLiked ? "heart" : "heart-outline"} 
-            size={20} 
-            color={post.isLiked ? "#ef4444" : "#6b7280"} 
+          <Ionicons
+            name={post.isLiked ? "heart" : "heart-outline"}
+            size={20}
+            color={post.isLiked ? "#ef4444" : "#6b7280"}
           />
-          <Text className={`ml-2 text-sm ${post.isLiked ? 'text-red-500' : 'text-gray-600'}`}>
+          <Text
+            className={`ml-2 text-sm ${post.isLiked ? "text-red-500" : "text-gray-600"}`}
+          >
             {post.likes}
           </Text>
         </TouchableOpacity>
@@ -212,6 +316,19 @@ const Community = () => {
           <Ionicons name="share-outline" size={20} color="#6b7280" />
           <Text className="ml-2 text-sm text-gray-600">Share</Text>
         </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => handleSavePost(post.id)}
+          className="flex-row items-center"
+        >
+          <Ionicons
+            name={
+              savedPosts.includes(post.id) ? "bookmark" : "bookmark-outline"
+            }
+            size={20}
+            color={savedPosts.includes(post.id) ? "#059669" : "#6b7280"}
+          />
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -219,7 +336,7 @@ const Community = () => {
   const renderFeed = () => (
     <ScrollView className="flex-1">
       {/* Create Post Button */}
-      <TouchableOpacity 
+      <TouchableOpacity
         className="bg-white rounded-xl mx-4 my-4 p-4 border-2 border-green-500 shadow-sm"
         onPress={() => setShowCreatePost(true)}
       >
@@ -230,15 +347,102 @@ const Community = () => {
         </View>
       </TouchableOpacity>
 
+      {/* Search Bar */}
+      <View className="mx-4 mb-4 bg-white rounded-lg border border-gray-300 flex-row items-center px-3 py-2">
+        <Ionicons name="search-outline" size={20} color="#6b7280" />
+        <TextInput
+          className="flex-1 text-gray-800 ml-2"
+          placeholder="Search posts..."
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
+      </View>
+
+      {/* Category Filter */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        className="mb-4 px-4"
+      >
+        {[
+          { key: "all", label: "All", icon: "📝" },
+          { key: "question", label: "Questions", icon: "❓" },
+          { key: "tip", label: "Tips", icon: "💡" },
+          { key: "market", label: "Market", icon: "💰" },
+          { key: "weather", label: "Weather", icon: "🌤️" },
+        ].map((cat) => (
+          <TouchableOpacity
+            key={cat.key}
+            onPress={() => setFilterCategory(cat.key as any)}
+            className={`mr-2 px-4 py-2 rounded-full border ${
+              filterCategory === cat.key
+                ? "bg-green-600 border-green-600"
+                : "bg-white border-gray-300"
+            }`}
+          >
+            <Text
+              className={
+                filterCategory === cat.key
+                  ? "text-white text-sm"
+                  : "text-gray-700 text-sm"
+              }
+            >
+              {cat.icon} {cat.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+
+      {/* Trending Section */}
+      {filteredPosts.length > 0 && (
+        <View className="mx-4 mb-4">
+          <View className="flex-row items-center mb-3">
+            <Ionicons name="flame-outline" size={20} color="#f97316" />
+            <Text className="text-lg font-bold text-gray-800 ml-2">
+              Trending
+            </Text>
+          </View>
+          {trendingPosts.map((post) => (
+            <View
+              key={post.id}
+              className="bg-yellow-50 rounded-lg p-3 mb-2 border border-yellow-200"
+            >
+              <View className="flex-row items-center mb-2">
+                <Text className="text-lg mr-2">{post.authorAvatar}</Text>
+                <View className="flex-1">
+                  <Text className="font-semibold text-gray-800 text-sm">
+                    {post.author}
+                  </Text>
+                  <Text className="text-xs text-gray-500">
+                    {post.likes} likes
+                  </Text>
+                </View>
+              </View>
+              <Text className="text-sm text-gray-700 line-clamp-2">
+                {post.content}
+              </Text>
+            </View>
+          ))}
+        </View>
+      )}
+
       {/* Quick Actions */}
       <View className="flex-row justify-around mx-4 mb-4">
         {[
-          { title: 'Ask Question', icon: 'help-circle-outline', category: 'question' },
-          { title: 'Share Tip', icon: 'bulb-outline', category: 'tip' },
-          { title: 'Market Price', icon: 'trending-up-outline', category: 'market' },
-          { title: 'Weather', icon: 'cloudy-outline', category: 'weather' }
+          {
+            title: "Ask Question",
+            icon: "help-circle-outline",
+            category: "question",
+          },
+          { title: "Share Tip", icon: "bulb-outline", category: "tip" },
+          {
+            title: "Market Price",
+            icon: "trending-up-outline",
+            category: "market",
+          },
+          { title: "Weather", icon: "cloudy-outline", category: "weather" },
         ].map((action, index) => (
-          <TouchableOpacity 
+          <TouchableOpacity
             key={index}
             className="bg-white rounded-xl p-3 items-center shadow-sm border border-gray-200"
             onPress={() => {
@@ -247,28 +451,51 @@ const Community = () => {
             }}
           >
             <Ionicons name={action.icon as any} size={24} color="#059669" />
-            <Text className="text-xs text-gray-600 mt-1 text-center">{action.title}</Text>
+            <Text className="text-xs text-gray-600 mt-1 text-center">
+              {action.title}
+            </Text>
           </TouchableOpacity>
         ))}
       </View>
 
       {/* Posts */}
-      {posts.map(renderPost)}
+      {filteredPosts.length > 0 ? (
+        filteredPosts.map(renderPost)
+      ) : (
+        <View className="items-center justify-center py-16 mx-4">
+          <Ionicons name="search-outline" size={64} color="#d1d5db" />
+          <Text className="text-gray-500 text-lg mt-4">No posts found</Text>
+          <Text className="text-gray-400 text-sm mt-2">
+            Try adjusting your search or filters
+          </Text>
+        </View>
+      )}
     </ScrollView>
   );
 
   const renderGroups = () => (
     <ScrollView className="flex-1">
       <View className="mx-4 my-4">
-        <Text className="text-xl font-bold text-gray-800 mb-4">Community Groups</Text>
+        <Text className="text-xl font-bold text-gray-800 mb-4">
+          Community Groups
+        </Text>
         {communityGroups.map((group) => (
-          <TouchableOpacity key={group.id} className="bg-white rounded-xl p-4 mb-3 shadow-sm">
+          <TouchableOpacity
+            key={group.id}
+            className="bg-white rounded-xl p-4 mb-3 shadow-sm"
+          >
             <View className="flex-row items-center">
               <Text className="text-3xl mr-4">{group.icon}</Text>
               <View className="flex-1">
-                <Text className="font-semibold text-gray-800 text-lg">{group.name}</Text>
-                <Text className="text-gray-600 text-sm mb-1">{group.description}</Text>
-                <Text className="text-green-600 text-sm font-medium">{group.members} members</Text>
+                <Text className="font-semibold text-gray-800 text-lg">
+                  {group.name}
+                </Text>
+                <Text className="text-gray-600 text-sm mb-1">
+                  {group.description}
+                </Text>
+                <Text className="text-green-600 text-sm font-medium">
+                  {group.members} members
+                </Text>
               </View>
               <TouchableOpacity className="bg-green-600 px-4 py-2 rounded-lg">
                 <Text className="text-white font-medium">Join</Text>
@@ -283,28 +510,36 @@ const Community = () => {
   const renderMarket = () => (
     <ScrollView className="flex-1">
       <View className="mx-4 my-4">
-        <Text className="text-xl font-bold text-gray-800 mb-4">Today's Market Prices</Text>
-        
+        <Text className="text-xl font-bold text-gray-800 mb-4">
+          Today's Market Prices
+        </Text>
+
         {[
-          { crop: 'Wheat', price: '₹2,280', change: '+₹30', icon: '🌾' },
-          { crop: 'Rice', price: '₹1,950', change: '-₹15', icon: '🌾' },
-          { crop: 'Corn', price: '₹1,720', change: '+₹25', icon: '🌽' },
-          { crop: 'Soybean', price: '₹4,150', change: '+₹80', icon: '🫘' },
-          { crop: 'Chickpea', price: '₹5,200', change: '+₹45', icon: '🫛' },
-          { crop: 'Mustard', price: '₹4,850', change: '-₹20', icon: '🌻' }
+          { crop: "Wheat", price: "₹2,280", change: "+₹30", icon: "🌾" },
+          { crop: "Rice", price: "₹1,950", change: "-₹15", icon: "🌾" },
+          { crop: "Corn", price: "₹1,720", change: "+₹25", icon: "🌽" },
+          { crop: "Soybean", price: "₹4,150", change: "+₹80", icon: "🫘" },
+          { crop: "Chickpea", price: "₹5,200", change: "+₹45", icon: "🫛" },
+          { crop: "Mustard", price: "₹4,850", change: "-₹20", icon: "🌻" },
         ].map((item, index) => (
           <View key={index} className="bg-white rounded-xl p-4 mb-3 shadow-sm">
             <View className="flex-row items-center justify-between">
               <View className="flex-row items-center flex-1">
                 <Text className="text-2xl mr-3">{item.icon}</Text>
                 <View>
-                  <Text className="font-semibold text-gray-800 text-lg">{item.crop}</Text>
+                  <Text className="font-semibold text-gray-800 text-lg">
+                    {item.crop}
+                  </Text>
                   <Text className="text-gray-600">Per quintal</Text>
                 </View>
               </View>
               <View className="items-end">
-                <Text className="font-bold text-xl text-gray-800">{item.price}</Text>
-                <Text className={`text-sm font-medium ${item.change.startsWith('+') ? 'text-green-600' : 'text-red-600'}`}>
+                <Text className="font-bold text-xl text-gray-800">
+                  {item.price}
+                </Text>
+                <Text
+                  className={`text-sm font-medium ${item.change.startsWith("+") ? "text-green-600" : "text-red-600"}`}
+                >
                   {item.change}
                 </Text>
               </View>
@@ -313,7 +548,9 @@ const Community = () => {
         ))}
 
         <TouchableOpacity className="bg-green-600 rounded-xl p-4 mt-4">
-          <Text className="text-white text-center font-semibold text-lg">View More Market Prices</Text>
+          <Text className="text-white text-center font-semibold text-lg">
+            View More Market Prices
+          </Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -322,11 +559,13 @@ const Community = () => {
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
       <StatusBar barStyle="dark-content" backgroundColor="#f9fafb" />
-      
+
       {/* Header */}
       <View className="bg-white border-b border-gray-200">
         <View className="flex-row items-center justify-between px-4 py-4">
-          <Text className="text-2xl font-bold text-gray-800">Farmer Community</Text>
+          <Text className="text-2xl font-bold text-gray-800">
+            Farmer Community
+          </Text>
           <TouchableOpacity>
             <Ionicons name="notifications-outline" size={24} color="#374151" />
           </TouchableOpacity>
@@ -335,25 +574,27 @@ const Community = () => {
         {/* Tab Navigation */}
         <View className="flex-row">
           {[
-            { key: 'feed', label: 'Feed', icon: 'home-outline' },
-            { key: 'groups', label: 'Groups', icon: 'people-outline' },
-            { key: 'market', label: 'Market', icon: 'trending-up-outline' }
+            { key: "feed", label: "Feed", icon: "home-outline" },
+            { key: "groups", label: "Groups", icon: "people-outline" },
+            { key: "market", label: "Market", icon: "trending-up-outline" },
           ].map((tab) => (
             <TouchableOpacity
               key={tab.key}
               className={`flex-1 flex-row items-center justify-center py-3 ${
-                activeTab === tab.key ? 'border-b-2 border-green-600' : ''
+                activeTab === tab.key ? "border-b-2 border-green-600" : ""
               }`}
               onPress={() => setActiveTab(tab.key as any)}
             >
-              <Ionicons 
-                name={tab.icon as any} 
-                size={20} 
-                color={activeTab === tab.key ? '#059669' : '#6b7280'} 
+              <Ionicons
+                name={tab.icon as any}
+                size={20}
+                color={activeTab === tab.key ? "#059669" : "#6b7280"}
               />
-              <Text className={`ml-2 font-medium ${
-                activeTab === tab.key ? 'text-green-600' : 'text-gray-600'
-              }`}>
+              <Text
+                className={`ml-2 font-medium ${
+                  activeTab === tab.key ? "text-green-600" : "text-gray-600"
+                }`}
+              >
                 {tab.label}
               </Text>
             </TouchableOpacity>
@@ -362,9 +603,9 @@ const Community = () => {
       </View>
 
       {/* Content */}
-      {activeTab === 'feed' && renderFeed()}
-      {activeTab === 'groups' && renderGroups()}
-      {activeTab === 'market' && renderMarket()}
+      {activeTab === "feed" && renderFeed()}
+      {activeTab === "groups" && renderGroups()}
+      {activeTab === "market" && renderMarket()}
 
       {/* Create Post Modal */}
       <Modal
@@ -385,26 +626,32 @@ const Community = () => {
 
           <View className="p-4">
             {/* Category Selection */}
-            <Text className="font-medium text-gray-800 mb-3">Choose Category:</Text>
+            <Text className="font-medium text-gray-800 mb-3">
+              Choose Category:
+            </Text>
             <View className="flex-row flex-wrap mb-4">
               {[
-                { key: 'question', label: 'Question', icon: '❓' },
-                { key: 'tip', label: 'Tip', icon: '💡' },
-                { key: 'market', label: 'Market', icon: '💰' },
-                { key: 'weather', label: 'Weather', icon: '🌤️' }
+                { key: "question", label: "Question", icon: "❓" },
+                { key: "tip", label: "Tip", icon: "💡" },
+                { key: "market", label: "Market", icon: "💰" },
+                { key: "weather", label: "Weather", icon: "🌤️" },
               ].map((category) => (
                 <TouchableOpacity
                   key={category.key}
                   className={`mr-3 mb-3 px-4 py-2 rounded-full border ${
                     selectedCategory === category.key
-                      ? 'bg-green-600 border-green-600'
-                      : 'bg-white border-gray-300'
+                      ? "bg-green-600 border-green-600"
+                      : "bg-white border-gray-300"
                   }`}
                   onPress={() => setSelectedCategory(category.key as any)}
                 >
-                  <Text className={`${
-                    selectedCategory === category.key ? 'text-white' : 'text-gray-700'
-                  }`}>
+                  <Text
+                    className={`${
+                      selectedCategory === category.key
+                        ? "text-white"
+                        : "text-gray-700"
+                    }`}
+                  >
                     {category.icon} {category.label}
                   </Text>
                 </TouchableOpacity>
